@@ -1,36 +1,85 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# TaskFlow AI
 
-## Getting Started
+TaskFlow AI is an application that processes meeting notes using artificial intelligence to generate summaries, extract actionable tasks, and help manage these tasks efficiently.
 
-First, run the development server:
+## Features
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- User authentication (signup, login, logout)
+- Meeting notes input and AI processing
+- AI-generated summaries and task extraction
+- Task management (viewing, editing, status updates)
+- Responsive dark-themed UI
+
+## Tech Stack
+
+- **Frontend:** Next.js (App Router) with Tailwind CSS
+- **Backend:** FastAPI (Python)
+- **Database & Authentication:** Supabase (PostgreSQL and Auth)
+- **AI:** Langchain with OpenAI
+
+## Project Setup
+
+### Frontend Setup
+
+1. Navigate to the project root directory
+2. Copy `.env.example` to `.env.local` and fill in your Supabase credentials
+3. Install dependencies:
+   ```
+   npm install
+   ```
+4. Run the development server:
+   ```
+   npm run dev
+   ```
+
+### Backend Setup
+
+1. Navigate to the `backend` directory
+2. Copy `.env.example` to `.env` and fill in your credentials
+3. Create a virtual environment (recommended):
+   ```
+   python -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   ```
+4. Install dependencies:
+   ```
+   pip install -r requirements.txt
+   ```
+5. Run the FastAPI server:
+   ```
+   uvicorn app.main:app --reload
+   ```
+
+### Supabase Setup
+
+1. Create a Supabase project at https://supabase.com
+2. Set up authentication (Email/Password provider)
+3. Run the SQL migrations found in `supabase/migrations` to create the necessary tables
+
+## Environment Variables
+
+### Frontend (`.env.local`)
+```
+NEXT_PUBLIC_SUPABASE_URL=your-supabase-url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
+NEXT_PUBLIC_API_URL=http://localhost:8000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Backend (`.env`)
+```
+SUPABASE_URL=your-supabase-url
+SUPABASE_SERVICE_ROLE_KEY=your-supabase-service-role-key
+SUPABASE_JWT_SECRET=your-supabase-jwt-secret
+OPENAI_API_KEY=your-openai-api-key
+OPENAI_MODEL_NAME=gpt-3.5-turbo
+FRONTEND_URL=http://localhost:3000
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Core Workflow
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. User signs up/logs in
+2. User inputs meeting notes on the dashboard
+3. AI processes the notes to generate a summary and extract tasks
+4. User reviews the AI-generated results and can edit tasks
+5. User saves the tasks
+6. User can view and manage all tasks on the tasks page

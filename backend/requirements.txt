@@ -1,0 +1,9 @@
+fastapi==0.103.1
+uvicorn==0.23.2
+pydantic==2.3.0
+python-dotenv==1.0.0
+supabase==1.0.4
+PyJWT==2.8.0
+langchain==0.0.267
+langchain-openai==0.0.2
+openai==0.27.8
