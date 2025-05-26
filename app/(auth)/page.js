@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { Eye, EyeOff, LayoutDashboard } from 'lucide-react';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
@@ -19,42 +19,42 @@ export default function AuthPage() {
   const router = useRouter();
   const { user, signIn, signUp } = useAuth();
   
-  useEffect(() => {
+  useEffect(() => { // if user is logged in, redirect to dashboard
     if (user) {
       router.push('/dashboard');
     }
-  }, [user, router]);
+  }, [user, router]); 
 
-  const toggleAuthMode = () => {
+  const toggleAuthMode = () => { // toggle between login and signup
     setIsLogin(!isLogin);
     setError(null);
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e) => { // handle form submission
     e.preventDefault();
     setLoading(true);
     setError(null);
     
     try {
-      if (isLogin) {
+      if (isLogin) { // login
         await signIn(email, password);
-        toast.success('Successfully logged in!');
-      } else {
-        if (password !== confirmPassword) {
-          setError('Passwords do not match');
-          setLoading(false);
+        toast.success('Successfully logged in!'); // show success message
+      } else { // signup
+        if (password !== confirmPassword) { // check if passwords match
+          setError('Passwords do not match'); // show error message
+          setLoading(false); // stop loading
           return;
         }
         await signUp(email, password);
-        toast.success('Account created successfully!');
+        toast.success('Account created successfully!'); // show success message
       }
-      router.push('/dashboard');
+      router.push('/dashboard'); // redirect to dashboard
     } catch (err) {
-      console.error('Auth error:', err);
-      setError(err.message || 'An error occurred during authentication');
-      toast.error(err.message || 'Authentication failed');
+      console.error('Auth error:', err); // log error
+      setError(err.message || 'An error occurred during authentication'); // show error message
+      toast.error(err.message || 'Authentication failed'); // show error message
     } finally {
-      setLoading(false);
+      setLoading(false); // stop loading
     }
   };
 
