@@ -20,8 +20,10 @@ export default function AuthPage() {
   const { user, signIn, signUp, loading: authLoading } = useAuth();
   
   useEffect(() => {
+    console.log('Auth state:', { user, authLoading });
     if (user && !authLoading) {
-      router.push('/dashboard');
+      console.log('Redirecting to dashboard...');
+      router.replace('/dashboard');
     }
   }, [user, router, authLoading]); 
 
@@ -39,9 +41,9 @@ export default function AuthPage() {
       if (isLogin) {
         const { data, error } = await signIn(email, password);
         if (error) throw error;
+        console.log('Login successful:', data);
         toast.success('Successfully logged in!');
-        console.log('logged in');
-        router.push('/dashboard');
+        router.replace('/dashboard');
       } else {
         if (password !== confirmPassword) {
           setError('Passwords do not match');
@@ -50,8 +52,9 @@ export default function AuthPage() {
         }
         const { data, error } = await signUp(email, password);
         if (error) throw error;
+        console.log('Signup successful:', data);
         toast.success('Account created successfully!');
-        router.push('/dashboard');
+        router.replace('/dashboard');
       }
     } catch (err) {
       console.error('Auth error:', err);

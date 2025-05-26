@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useState, useEffect } from 'react';
-import { supabase } from '../lib/supabase/client';
+import { createClient } from '@/utils/supabase/client';
 
 // Create the authentication context
 const AuthContext = createContext(null);
@@ -19,15 +19,13 @@ export const useAuth = () => {
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const supabase = createClient();
 
   // Initialize user on mount
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        // Get the current session
         const { data: { session } } = await supabase.auth.getSession();
-        
-        // Update the user state based on the session
         setUser(session?.user || null);
       } catch (error) {
         console.error('Error fetching session:', error);
