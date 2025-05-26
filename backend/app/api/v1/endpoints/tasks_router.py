@@ -4,7 +4,7 @@ from typing import Dict, Any, List
 
 from app.models.task_schemas import TaskResponseSchema, UpdateTaskStatusRequest
 from app.auth.security import get_current_user
-from app.db.supabase_ops import get_tasks_for_user, update_task_status_by_id
+from app.db.supabase_ops import get_tasks_for_user, update_task_status_by_id, get_tasks_by_note_id, get_notes_with_tasks
 
 router = APIRouter()
 
@@ -42,4 +42,39 @@ async def update_task_status(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error updating task status: {str(e)}"
+        )
+
+@router.get("/by-note/{note_id}", response_model=List[TaskResponseSchema])
+async def get_tasks_by_note(
+    note_id: UUID,
+    current_user: Dict[str, Any] = Depends(get_current_user)
+):
+    """
+    Get all tasks for a specific note for the authenticated user.
+    """
+    try:
+        user_id = UUID(current_user["user_id"])
+        tasks = await get_tasks_by_note_id(user_id, note_id)
+        return tasks
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error retrieving tasks: {str(e)}"
+        )
+
+@router.get("/notes", response_model=List[Dict[str, Any]])
+async def get_notes_with_tasks_endpoint(
+    current_user: Dict[str, Any] = Depends(get_current_user)
+):
+    """
+    Get all notes that have tasks for the authenticated user.
+    """
+    try:
+        user_id = UUID(current_user["user_id"])
+        notes = await get_notes_with_tasks(user_id)
+        return notes
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error retrieving notes with tasks: {str(e)}"
         )

@@ -101,3 +101,38 @@ async def update_task_status_by_id(task_id: UUID, user_id: UUID, status: str) ->
     except Exception as e:
         print(f"Error in update_task_status_by_id: {e}")
         raise e
+
+async def get_tasks_by_note_id(user_id: UUID, note_id: UUID) -> List[Dict[str, Any]]:
+    """Get all tasks for a specific note and user"""
+    try:
+        response = supabase.table("tasks").select(
+            "id, description, due_date, status, created_at, note_id"
+        ).eq("user_id", str(user_id)).eq("note_id", str(note_id)).order("created_at", desc=True).execute()
+        
+        return response.data
+    except Exception as e:
+        print(f"Error in get_tasks_by_note_id: {e}")
+        raise e
+
+async def get_notes_with_tasks(user_id: UUID) -> List[Dict[str, Any]]:
+    """Get all notes that have tasks for a specific user"""
+    try:
+        # First get all unique note_ids from tasks
+        tasks_response = supabase.table("tasks").select(
+            "note_id"
+        ).eq("user_id", str(user_id)).execute()
+        
+        note_ids = list(set(task["note_id"] for task in tasks_response.data))
+        
+        if not note_ids:
+            return []
+            
+        # Then get the notes details
+        notes_response = supabase.table("meeting_notes").select(
+            "id, original_text, summary, created_at"
+        ).eq("user_id", str(user_id)).in_("id", note_ids).order("created_at", desc=True).execute()
+        
+        return notes_response.data
+    except Exception as e:
+        print(f"Error in get_notes_with_tasks: {e}")
+        raise e

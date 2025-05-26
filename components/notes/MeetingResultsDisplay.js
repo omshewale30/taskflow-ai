@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { format, isValid, parseISO } from 'date-fns';
 import { Calendar, CheckCircle2, FileText, ListTodo, ChevronUp, ChevronDown } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import Markdown from 'react-markdown';
 
 export default function MeetingResultsDisplay({ noteData, onSaveTasks, isSaving }) {
   const router = useRouter();
@@ -85,9 +86,23 @@ export default function MeetingResultsDisplay({ noteData, onSaveTasks, isSaving 
           <h2 className="text-lg font-medium">AI Summary</h2>
         </div>
         <div className="p-4 bg-background-hover rounded-md">
-          <p className="text-text-primary whitespace-pre-line">
+          <Markdown
+            components={{
+              p: ({ node, ...props }) => <p className="text-text-primary" {...props} />,
+              h1: ({ node, ...props }) => <h1 className="text-2xl font-bold text-text-primary mb-4" {...props} />,
+              h2: ({ node, ...props }) => <h2 className="text-xl font-bold text-text-primary mb-3" {...props} />,
+              h3: ({ node, ...props }) => <h3 className="text-lg font-bold text-text-primary mb-2" {...props} />,
+              ul: ({ node, ...props }) => <ul className="list-disc list-inside text-text-primary mb-4" {...props} />,
+              ol: ({ node, ...props }) => <ol className="list-decimal list-inside text-text-primary mb-4" {...props} />,
+              li: ({ node, ...props }) => <li className="text-text-primary mb-1" {...props} />,
+              strong: ({ node, ...props }) => <strong className="font-bold text-text-primary" {...props} />,
+              em: ({ node, ...props }) => <em className="italic text-text-primary" {...props} />,
+              a: ({ node, ...props }) => <a className="text-primary hover:underline" {...props} />,
+              blockquote: ({ node, ...props }) => <blockquote className="border-l-4 border-primary pl-4 italic text-text-primary mb-4" {...props} />
+            }}
+          >
             {noteData.summary}
-          </p>
+          </Markdown>
         </div>
       </div>
       
