@@ -82,13 +82,13 @@ export default function TaskTabs() {
 
   const getTabLabel = (note) => {
     // Try to use the first line of the summary as the tab label
-    if (note.summary) {
-      const firstLine = note.summary.split('\n')[0];
-      if (firstLine.length > 30) {
-        return firstLine.substring(0, 27) + '...';
-      }
-      return firstLine;
-    }
+    // if (note.summary) {
+    //   const firstLine = note.summary.split('\n')[0];
+    //   if (firstLine.length > 30) {
+    //     return firstLine.substring(0, 27) + '...';
+    //   }
+    //   return firstLine;
+    // }
     // Fallback to date if no summary
     return new Date(note.created_at).toLocaleDateString();
   };
