@@ -31,7 +31,7 @@ async def get_meeting_note_by_id(note_id: UUID, user_id: UUID) -> Optional[Dict[
     """Get a meeting note by ID, ensuring it belongs to the specified user"""
     try:
         response = supabase.table("meeting_notes").select(
-            "id:note_id, original_text, summary, created_at"
+            "id, original_text, summary, created_at"
         ).eq("id", str(note_id)).eq("user_id", str(user_id)).limit(1).execute()
         
         if response.data and len(response.data) > 0:
@@ -55,9 +55,13 @@ async def create_tasks_batch(user_id: UUID, note_id: UUID, tasks: List[Dict[str,
                 "status": "open"  # Default status
             }
             
-            # Add due_date if provided
+            # Add due_date if provided, converting to string if it's a date object
             if "due_date" in task and task["due_date"]:
-                task_record["due_date"] = task["due_date"]
+                due_date = task["due_date"]
+                if isinstance(due_date, date):
+                    task_record["due_date"] = due_date.isoformat()
+                else:
+                    task_record["due_date"] = due_date
                 
             task_records.append(task_record)
         

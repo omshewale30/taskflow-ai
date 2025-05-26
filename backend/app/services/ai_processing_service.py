@@ -23,7 +23,7 @@ def get_llm():
     return ChatOpenAI(
         model_name=settings.OPENAI_MODEL_NAME, 
         temperature=0.2,
-        openai_api_key=settings.OPENAI_API_KEY
+        api_key=settings.OPENAI_API_KEY
     )
 
 # Summarization chain
@@ -53,12 +53,12 @@ def create_task_extraction_chain():
     Respond ONLY with a valid JSON object containing a single key "tasks", which is a list of these action items. If no action items are found, return an empty list for "tasks".
 
     Example:
-    {
+    {{
       "tasks": [
-        {"description": "Send follow-up email to John Doe", "due_date": "2025-06-15"},
-        {"description": "Prepare Q3 budget report", "due_date": null}
+        {{"description": "Send follow-up email to John Doe", "due_date": "2025-06-15"}},
+        {{"description": "Prepare Q3 budget report", "due_date": null}}
       ]
-    }
+    }}
 
     Meeting Notes:
     {notes_text}
