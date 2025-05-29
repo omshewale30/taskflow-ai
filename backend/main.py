@@ -10,6 +10,7 @@ load_dotenv()
 # Import API routers
 from app.api.v1.endpoints.notes_router import router as notes_router
 from app.api.v1.endpoints.tasks_router import router as tasks_router
+from app.api.v1.endpoints.calendar_router import router as calendar_router
 
 # Lifespan context manager for startup/shutdown events
 @asynccontextmanager
@@ -41,6 +42,7 @@ app.add_middleware(
 # Include API routers
 app.include_router(notes_router, prefix="/api/v1/notes", tags=["notes"])
 app.include_router(tasks_router, prefix="/api/v1/tasks", tags=["tasks"])
+app.include_router(calendar_router, prefix="/api/v1", tags=["calendar"])
 
 @app.get("/")
 async def root():

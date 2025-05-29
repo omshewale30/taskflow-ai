@@ -2,10 +2,13 @@
 
 import { useState } from 'react';
 import { formatDistanceToNow, isPast, parseISO } from 'date-fns';
-import { Calendar, CheckSquare, Square } from 'lucide-react';
+import { Calendar, CheckSquare, Square, CalendarPlus } from 'lucide-react';
+import { apiClient } from '@/lib/apiClient';
+import toast from 'react-hot-toast';
 
 export default function TaskItem({ task, onUpdateStatus }) {
   const [isUpdating, setIsUpdating] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
   
   const handleStatusToggle = async () => {
     try {
@@ -16,6 +19,32 @@ export default function TaskItem({ task, onUpdateStatus }) {
       console.error('Failed to update task status:', error);
     } finally {
       setIsUpdating(false);
+    }
+  };
+
+  const handleAddToCalendar = async () => {
+    if (!task.due_date) return;
+    
+    try {
+      setIsDownloading(true);
+      const blob = await apiClient.getTaskCalendarEvent(task.id);
+      
+      // Create a temporary URL for the blob
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `TaskFlow_Event_${task.id.substring(0, 8)}.ics`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+      
+      toast.success('Calendar event downloaded');
+    } catch (error) {
+      console.error('Failed to download calendar event:', error);
+      toast.error('Failed to download calendar event');
+    } finally {
+      setIsDownloading(false);
     }
   };
   
@@ -56,6 +85,23 @@ export default function TaskItem({ task, onUpdateStatus }) {
               <span className={`text-xs ${isOverdue ? 'text-error' : 'text-text-muted'}`}>
                 {formatDueDate(task.due_date)}
               </span>
+              <button
+                onClick={handleAddToCalendar}
+                disabled={isDownloading}
+                className={`ml-2 p-1 rounded hover:bg-background-card text-text-muted hover:text-primary transition-colors ${
+                  isDownloading ? 'opacity-70 cursor-not-allowed' : ''
+                }`}
+                title="Add to Calendar"
+              >
+                {isDownloading ? (
+                  <svg className="animate-spin h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                ) : (
+                  <CalendarPlus className="h-3.5 w-3.5" />
+                )}
+              </button>
             </div>
           )}
         </div>

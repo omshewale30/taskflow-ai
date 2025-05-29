@@ -2,14 +2,17 @@
 
 import { useState } from 'react';
 import { format, isValid, parseISO } from 'date-fns';
-import { Calendar, CheckCircle2, FileText, ListTodo, ChevronUp, ChevronDown } from 'lucide-react';
+import { Calendar, CheckCircle2, FileText, ListTodo, ChevronUp, ChevronDown, CalendarPlus } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Markdown from 'react-markdown';
+import { apiClient } from '@/lib/apiClient';
+import toast from 'react-hot-toast';
 
 export default function MeetingResultsDisplay({ noteData, onSaveTasks, isSaving }) {
   const router = useRouter();
   const [tasks, setTasks] = useState(noteData?.extracted_tasks || []);
   const [showOriginalNotes, setShowOriginalNotes] = useState(false);
+  const [downloadingTaskId, setDownloadingTaskId] = useState(null);
   
   const handleTaskChange = (index, field, value) => {
     const updatedTasks = [...tasks];
@@ -26,6 +29,32 @@ export default function MeetingResultsDisplay({ noteData, onSaveTasks, isSaving 
 
   const handleSaveClick = () => {
     onSaveTasks(tasks);
+  };
+
+  const handleAddToCalendar = async (taskId, description, dueDate) => {
+    if (!dueDate) return;
+    
+    try {
+      setDownloadingTaskId(taskId);
+      const blob = await apiClient.getTaskCalendarEvent(taskId);
+      
+      // Create a temporary URL for the blob
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `TaskFlow_Event_${taskId.substring(0, 8)}.ics`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+      
+      toast.success('Calendar event downloaded');
+    } catch (error) {
+      console.error('Failed to download calendar event:', error);
+      toast.error('Failed to download calendar event');
+    } finally {
+      setDownloadingTaskId(null);
+    }
   };
   
   const formatDate = (dateString) => {
@@ -159,6 +188,27 @@ export default function MeetingResultsDisplay({ noteData, onSaveTasks, isSaving 
                         />
                       </div>
                     </div>
+                    
+                    {task.due_date && (
+                      <button
+                        type="button"
+                        onClick={() => handleAddToCalendar(task.id || `temp-${index}`, task.description, task.due_date)}
+                        disabled={downloadingTaskId === (task.id || `temp-${index}`)}
+                        className={`mt-6 p-2 text-primary hover:bg-background-card rounded-md ${
+                          downloadingTaskId === (task.id || `temp-${index}`) ? 'opacity-70 cursor-not-allowed' : ''
+                        }`}
+                        title="Add to Calendar"
+                      >
+                        {downloadingTaskId === (task.id || `temp-${index}`) ? (
+                          <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                        ) : (
+                          <CalendarPlus className="h-5 w-5" />
+                        )}
+                      </button>
+                    )}
                     
                     <button
                       type="button"

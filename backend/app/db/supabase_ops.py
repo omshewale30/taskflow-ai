@@ -136,3 +136,17 @@ async def get_notes_with_tasks(user_id: UUID) -> List[Dict[str, Any]]:
     except Exception as e:
         print(f"Error in get_notes_with_tasks: {e}")
         raise e
+
+async def get_task_by_id_and_user(task_id: UUID, user_id: UUID) -> Dict[str, Any]:
+    """Get a specific task by ID and user ID"""
+    try:
+        response = supabase.table("tasks").select(
+            "id, description, due_date, status, created_at, note_id"
+        ).eq("id", str(task_id)).eq("user_id", str(user_id)).execute()
+        
+        if response.data and len(response.data) > 0:
+            return response.data[0]
+        return None
+    except Exception as e:
+        print(f"Error in get_task_by_id_and_user: {e}")
+        raise e
