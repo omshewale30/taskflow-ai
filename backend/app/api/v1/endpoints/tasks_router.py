@@ -14,7 +14,8 @@ from app.db.supabase_ops import (
     get_tasks_by_note_id, 
     get_notes_with_tasks,
     update_task_importance_by_id,
-    get_daily_digest_tasks
+    get_daily_digest_tasks,
+    delete_task_by_id
 )
 
 router = APIRouter()
@@ -132,4 +133,28 @@ async def get_notes_with_tasks_endpoint(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error retrieving notes with tasks: {str(e)}"
+        )
+
+@router.delete("/{task_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_task(
+    task_id: UUID,
+    current_user: Dict[str, Any] = Depends(get_current_user)
+):
+    """
+    Delete a specific task.
+    """
+    try:
+        user_id = UUID(current_user["user_id"])
+        success = await delete_task_by_id(task_id, user_id)
+        if not success:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Task not found"
+            )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error deleting task: {str(e)}"
         )

@@ -1,7 +1,8 @@
 from langchain_openai import ChatOpenAI
 from langchain.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import JsonOutputParser
-from langchain_core.output_parsers import StrOutputParser
+from langchain_core.output_parsers import StrOutputParser, PydanticOutputParser
+from langchain_core.runnables import RunnableParallel, RunnableLambda
 from pydantic import BaseModel, Field
 from typing import List, Optional, Tuple, Dict, Any
 from datetime import date
@@ -70,10 +71,30 @@ def create_task_extraction_chain():
     ])
     
     # Using JsonOutputParser
-    output_parser = JsonOutputParser()
+    output_parser = PydanticOutputParser(pydantic_object=ExtractedTaskList)
     task_extraction_chain = task_extraction_prompt_template | llm | output_parser
     
     return task_extraction_chain
+
+def format_final_output(processed_output: Dict[str, Any]) -> Tuple[str, List[Dict[str, Any]]]:
+    """
+    Format the final output of the task extraction chain.
+    """
+    summary = processed_output.get("summary", "Error generating summary.")
+    extracted_tasks_list_obj: Optional[ExtractedTaskList] = processed_output.get("tasks")
+    tasks_as_dict = []
+    
+    if extracted_tasks_list_obj and hasattr(extracted_tasks_list_obj, "tasks"):
+        tasks_as_dict = [task.model_dump() for task in extracted_tasks_list_obj.tasks]
+    
+    return summary, tasks_as_dict
+
+processing_pipeline = RunnableParallel(
+    summary = create_summarization_chain(),
+    tasks = create_task_extraction_chain()
+)
+
+agentic_workflow = processing_pipeline | RunnableLambda(format_final_output)
 
 async def generate_summary_and_extract_tasks(text: str) -> Tuple[str, List[Dict[str, Any]]]:
     """
@@ -89,28 +110,8 @@ async def generate_summary_and_extract_tasks(text: str) -> Tuple[str, List[Dict[
     """
     try:
         # Initialize chains
-        summarization_chain = create_summarization_chain()
-        task_extraction_chain = create_task_extraction_chain()
-        
-        # Generate summary
-        summary_result = await summarization_chain.ainvoke({"notes_text": text})
-        
-        # Extract tasks
-        tasks_result = await task_extraction_chain.ainvoke({"notes_text": text})
-        
-        # Parse the tasks result
-        try:
-            if isinstance(tasks_result, str):
-                tasks_result = json.loads(tasks_result)
-            
-            # Extract tasks array from the result
-            tasks = tasks_result.get("tasks", [])
-        except (json.JSONDecodeError, AttributeError) as e:
-            print(f"Error parsing tasks: {e}")
-            # Fallback to empty task list if parsing fails
-            tasks = []
-        
-        return summary_result, tasks
+        result = await agentic_workflow.ainvoke({"notes_text": text})
+        return result[0], result[1]
     
     except Exception as e:
         print(f"Error in generate_summary_and_extract_tasks: {e}")

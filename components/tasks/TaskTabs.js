@@ -69,6 +69,13 @@ export default function TaskTabs() {
 
   const handleUpdateTaskStatus = async (taskId, newStatus) => {
     try {
+      if (newStatus === 'deleted') {
+        // Remove the task from the local state
+        setTasks(tasks.filter(task => task.id !== taskId));
+        setFilteredTasks(filteredTasks.filter(task => task.id !== taskId));
+        return;
+      }
+
       await apiClient.updateTaskStatus(taskId, newStatus);
       setTasks(tasks.map(task => 
         task.id === taskId ? { ...task, status: newStatus } : task

@@ -29,7 +29,7 @@ export default function TasksPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold mb-6 text-gray-200">Tasks</h1>
+
       
       {/* Daily Digest Section */}
       <div className="mb-8">

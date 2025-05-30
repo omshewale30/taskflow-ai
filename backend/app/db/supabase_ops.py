@@ -211,3 +211,20 @@ async def get_daily_digest_tasks(user_id: UUID) -> List[Dict[str, Any]]:
     except Exception as e:
         print(f"Error in get_daily_digest_tasks: {e}")
         raise
+
+async def delete_task_by_id(task_id: UUID, user_id: UUID) -> bool:
+    """
+    Delete a task by ID, ensuring it belongs to the specified user.
+    Returns True if deletion was successful, False otherwise.
+    """
+    try:
+        response = supabase.table("tasks") \
+            .delete() \
+            .eq("id", str(task_id)) \
+            .eq("user_id", str(user_id)) \
+            .execute()
+        
+        return bool(response.data)
+    except Exception as e:
+        print(f"Error in delete_task_by_id: {e}")
+        raise
