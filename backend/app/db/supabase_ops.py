@@ -152,22 +152,23 @@ async def get_task_by_id_and_user(task_id: UUID, user_id: UUID) -> Dict[str, Any
         print(f"Error in get_task_by_id_and_user: {e}")
         raise e
 
-async def update_task_importance(task_id: UUID, user_id: UUID, is_important: bool) -> Optional[Dict[str, Any]]:
+async def update_task_importance_by_id(task_id: UUID, user_id: UUID, is_important: bool) -> Optional[Dict[str, Any]]:
     """
     Update the importance of a task.
     """
     try:
-        response = await supabase.table("tasks") \
+        response = supabase.table("tasks") \
             .update({"is_important": is_important}) \
             .eq("id", str(task_id)) \
             .eq("user_id", str(user_id)) \
             .execute()
         
         if response.data:
+            print(f"Updated task importance: {response.data[0]}")
             return response.data[0]
         return None
     except Exception as e:
-        print(f"Error in update_task_importance: {e}")
+        print(f"Error in update_task_importance_by_id: {e}")
         raise
 
 async def get_daily_digest_tasks(user_id: UUID) -> List[Dict[str, Any]]:

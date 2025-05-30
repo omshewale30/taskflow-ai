@@ -26,16 +26,17 @@ export default function TaskItem({ task, onUpdateStatus }) {
   const handleToggleImportance = async () => {
     try {
       setIsUpdatingImportance(true);
-      const response = await fetch(`/api/v1/tasks/${task.id}/importance`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ is_important: !task.is_important }),
-      });
-
-      if (!response.ok) throw new Error('Failed to update task importance');
+      const response = await apiClient.updateTaskImportance(task.id, !task.is_important);
       
-      // Notify parent component to refresh the task list
+      if (!response) throw new Error('No response received from server');
+      
+      // Update the task's is_important state
+      task.is_important = !task.is_important;
+      
+      // Notify parent component to refresh the task list with the updated task data
       if (onUpdateStatus) onUpdateStatus(task.id, task.status);
+      
+      toast.success(task.is_important ? 'Added to important tasks' : 'Removed from important tasks');
     } catch (error) {
       console.error('Error updating task importance:', error);
       toast.error('Failed to update task importance');

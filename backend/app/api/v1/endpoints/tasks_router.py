@@ -13,7 +13,7 @@ from app.db.supabase_ops import (
     update_task_status_by_id, 
     get_tasks_by_note_id, 
     get_notes_with_tasks,
-    update_task_importance,
+    update_task_importance_by_id,
     get_daily_digest_tasks
 )
 
@@ -66,12 +66,13 @@ async def update_task_importance(
     """
     try:
         user_id = UUID(current_user["user_id"])
-        updated_task = await update_task_importance(task_id, user_id, request.is_important)
+        updated_task = await update_task_importance_by_id(task_id, user_id, request.is_important)
         if not updated_task:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Task not found"
             )
+        
         return updated_task
     except HTTPException:
         raise
