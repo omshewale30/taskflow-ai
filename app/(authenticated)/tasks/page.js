@@ -1,33 +1,47 @@
-"use client";
+'use client';
 
-import { CheckSquare } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import DailyDigest from '@/components/tasks/DailyDigest';
 import TaskTabs from '@/components/tasks/TaskTabs';
 
 export default function TasksPage() {
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    // Set loading to false after initial render
+    setIsLoading(false);
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="animate-pulse space-y-4">
+          <div className="h-8 w-48 bg-slate-700 rounded"></div>
+          <div className="space-y-2">
+            <div className="h-16 bg-slate-700 rounded"></div>
+            <div className="h-16 bg-slate-700 rounded"></div>
+            <div className="h-16 bg-slate-700 rounded"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="fade-in space-y-6">
-      <header className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold mb-2">Tasks</h1>
-          <p className="text-text-secondary">Manage and track your action items</p>
-        </div>
-      </header>
+    <div className="container mx-auto px-4 py-8">
+      <h1 className="text-2xl font-bold mb-6 text-gray-200">Tasks</h1>
       
-      <div className="card">
-        <div className="flex items-center mb-6 space-x-3">
-          <div className="p-2 rounded-full bg-primary bg-opacity-10">
-            <CheckSquare className="h-6 w-6 text-primary" />
-          </div>
-          <div>
-            <h2 className="text-xl font-semibold">Your Tasks</h2>
-            <p className="text-text-secondary text-sm">
-              View and manage tasks from your meetings
-            </p>
-          </div>
-        </div>
-        
+      {/* Daily Digest Section */}
+      <div className="mb-8">
+        <h2 className="text-xl font-semibold mb-4 text-gray-200">Today's Focus</h2>
+        <DailyDigest />
+      </div>
+      
+      {/* All Tasks Section with Tabs */}
+      <div>
+        <h2 className="text-xl font-semibold mb-4 text-gray-200">All Tasks</h2>
         <TaskTabs />
       </div>
     </div>
   );
-}
+} 

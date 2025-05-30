@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field
 from typing import List, Optional, Literal
-from datetime import date
+from datetime import date, datetime
 from uuid import UUID
 
 # Extracted Task Schema (from AI processing)
@@ -15,14 +15,18 @@ class ExtractedTaskList(BaseModel):
 class TaskCreateSchema(BaseModel):
     description: str
     due_date: Optional[date] = None
+    is_important: Optional[bool] = False
 
 # Task Response Schema
 class TaskResponseSchema(BaseModel):
     id: UUID
     description: str
+    status: str
+    is_important: bool = False
+    created_at: datetime
     due_date: Optional[date] = None
-    status: str  # "open" or "completed"
-    created_at: str
+    note_id: Optional[UUID] = None
+    user_id: UUID
     
     class Config:
         from_attributes = True
@@ -33,4 +37,8 @@ class SaveTasksRequest(BaseModel):
 
 # Request Schema for updating task status
 class UpdateTaskStatusRequest(BaseModel):
-    status: Literal["open", "completed"]
+    status: str = Field(..., description="New status of the task")
+
+# Request Schema for updating task importance
+class UpdateTaskImportanceRequest(BaseModel):
+    is_important: bool = Field(..., description="Whether the task is important or not")

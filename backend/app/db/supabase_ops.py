@@ -1,7 +1,7 @@
 from supabase import create_client, Client
 from uuid import UUID
 from typing import List, Dict, Any, Optional
-from datetime import date
+from datetime import date, timedelta, datetime
 from app.core.config import settings
 
 # Initialize Supabase client
@@ -52,7 +52,8 @@ async def create_tasks_batch(user_id: UUID, note_id: UUID, tasks: List[Dict[str,
                 "user_id": str(user_id),
                 "note_id": str(note_id),
                 "description": task["description"],
-                "status": "open"  # Default status
+                "status": "open",  # Default status
+                "is_important": task.get("is_important", False)  # Default to False if not provided
             }
             
             # Add due_date if provided, converting to string if it's a date object
@@ -79,7 +80,7 @@ async def get_tasks_for_user(user_id: UUID) -> List[Dict[str, Any]]:
     """Get all tasks for a specific user"""
     try:
         response = supabase.table("tasks").select(
-            "id, description, due_date, status, created_at, note_id"
+            "id, description, due_date, status, created_at, note_id, is_important, user_id"
         ).eq("user_id", str(user_id)).order("created_at", desc=True).execute()
         
         return response.data
@@ -106,7 +107,7 @@ async def get_tasks_by_note_id(user_id: UUID, note_id: UUID) -> List[Dict[str, A
     """Get all tasks for a specific note and user"""
     try:
         response = supabase.table("tasks").select(
-            "id, description, due_date, status, created_at, note_id"
+            "id, description, due_date, status, created_at, note_id, is_important, user_id"
         ).eq("user_id", str(user_id)).eq("note_id", str(note_id)).order("created_at", desc=True).execute()
         
         return response.data
@@ -150,3 +151,62 @@ async def get_task_by_id_and_user(task_id: UUID, user_id: UUID) -> Dict[str, Any
     except Exception as e:
         print(f"Error in get_task_by_id_and_user: {e}")
         raise e
+
+async def update_task_importance(task_id: UUID, user_id: UUID, is_important: bool) -> Optional[Dict[str, Any]]:
+    """
+    Update the importance of a task.
+    """
+    try:
+        response = await supabase.table("tasks") \
+            .update({"is_important": is_important}) \
+            .eq("id", str(task_id)) \
+            .eq("user_id", str(user_id)) \
+            .execute()
+        
+        if response.data:
+            return response.data[0]
+        return None
+    except Exception as e:
+        print(f"Error in update_task_importance: {e}")
+        raise
+
+async def get_daily_digest_tasks(user_id: UUID) -> List[Dict[str, Any]]:
+    """
+    Get a smart digest of tasks for the user, prioritizing:
+    1. Important tasks
+    2. Tasks due today
+    3. Tasks due this week
+    4. Recently created tasks
+    """
+    try:
+        today = datetime.now().date()
+        week_start = today - timedelta(days=today.weekday())
+        week_end = week_start + timedelta(days=6)
+
+        # Get all tasks for the user
+        response = supabase.table("tasks") \
+            .select("id, description, status, is_important, created_at, due_date, note_id, user_id") \
+            .eq("user_id", str(user_id)) \
+            .order("is_important", desc=True) \
+            .order("due_date", desc=False) \
+            .order("created_at", desc=False) \
+            .execute()
+
+        if not response.data:
+            return []
+
+        tasks = response.data
+
+        # Filter and sort tasks
+        important_tasks = [t for t in tasks if t.get("is_important")]
+        due_today = [t for t in tasks if t.get("due_date") and datetime.fromisoformat(t["due_date"]).date() == today]
+        due_this_week = [t for t in tasks if t.get("due_date") and week_start <= datetime.fromisoformat(t["due_date"]).date() <= week_end]
+        recent_tasks = [t for t in tasks if t not in important_tasks + due_today + due_this_week]
+
+        # Combine all tasks in priority order
+        digest_tasks = important_tasks + due_today + due_this_week + recent_tasks
+
+        return digest_tasks
+    except Exception as e:
+        print(f"Error in get_daily_digest_tasks: {e}")
+        raise
